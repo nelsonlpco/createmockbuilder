@@ -1,0 +1,18 @@
+{
+	"id": 1,
+	"password": "#$%asd213",
+	"active": true,
+	"peoploe": { 
+		"name": "Nelson",
+		"age": 31,
+		"contact": {
+			"email": "nelson@gmail.com",
+			"phone": "44991751989"
+		}
+	},
+	"address": { 
+		"city": "Maringá",
+		"streeth": "Avenue Marinho",
+		"number": 23
+	}
+}
