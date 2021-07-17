@@ -3,17 +3,17 @@ package usecases
 import (
 	"github.com/nelsonlpco/createmockbuilder/domain/entities"
 	"github.com/nelsonlpco/createmockbuilder/domain/services/classservices"
-	typescriptservice "github.com/nelsonlpco/createmockbuilder/domain/services/typescriptservices"
+	javascriptservice "github.com/nelsonlpco/createmockbuilder/domain/services/javascriptservices"
 )
 
-func ConvertJsonToTs(path string) ([]entities.ParsedClass, error) {
+func ConvertJsonToJs(path string) ([]entities.ParsedClass, error) {
 	goClasses, err := classservices.MapJsonFromClasses(path)
 
 	if err != nil {
 		return nil, err
 	}
 
-	result := typescriptservice.MapTypescriptBuilderFromGoClasses(goClasses)
+	result := javascriptservice.MapJavascriptBuilderFromGoClasses(goClasses)
 
 	return result, nil
 }

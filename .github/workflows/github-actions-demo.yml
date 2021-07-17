@@ -1,0 +1,51 @@
+name: pr
+
+on:
+  pull_request:
+    branches: [ '**' ]
+  workflow_dispatch:
+    branches: [ '**' ]
+
+jobs:
+  full_ci:
+    strategy:
+      matrix:
+        go-version: [ 1.16.x ]
+
+    runs-on: ubuntu-18.04
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
+
+      - name: check go-version
+        run: go version
+
+      - name: run tests
+        run: |
+          CVPKG=$(go list ./... | grep domain | tr '\n' ',')
+          go test -coverpkg=${CVPKG} -coverprofile=profile.cov -covermode=count ./... 
+
+
+      # - name: Setup gcloud cli
+      #   uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
+      #   with:
+      #     version: '290.0.1'
+      #     project_id: ${{ secrets.PROJECT_ID }}
+      #     service_account_key: ${{ secrets.GCLOUD_SERVICE_KEY }}
+      #     export_default_credentials: true
+
+      # - name: Publish cod cov badge
+      #   run: |
+      #     set -x
+      #     total=`go tool cover -func=coverage.out | grep total | grep -Eo '[0-9]+\.[0-9]+'`
+      #     if (( $(echo "$total <= 50" | bc -l) )) ; then
+      #       COLOR=red
+      #     elif (( $(echo "$total > 80" | bc -l) )); then
+      #       COLOR=green
+      #     else
+      #       COLOR=orange
+      #     fi
+      #     curl "https://img.shields.io/badge/coverage-$total%25-$COLOR" > badge.svg
+      #     gsutil  -h "Cache-Control: no-cache" cp badge.svg gs://${SOME_BUCKET}/${PROJECT_NAME}/codcov.svg
+      #     gsutil acl ch -u AllUsers:R gs://${SOME_BUCKET}/${PROJECT_NAME}/codcov.svg

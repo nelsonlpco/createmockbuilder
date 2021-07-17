@@ -20,6 +20,11 @@ type ClassBuilder struct {
 	params []ParamModel
 }
 
+type ParsedClass struct {
+	Name         string
+	BuilderClass string
+}
+
 func (c *ClassBuilder) Name() string {
 	return c.name
 }

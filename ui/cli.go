@@ -6,19 +6,24 @@ import (
 	"io/ioutil"
 	"os"
 
+	"github.com/nelsonlpco/createmockbuilder/domain/entities"
 	"github.com/nelsonlpco/createmockbuilder/domain/usecases"
 )
 
 func CliCreateMockBuilder() {
 	jsonPath := flag.String("f", "./sample.json", "arquivo JSON")
 	outputPath := flag.String("o", ".", "diretório de saida")
-	js := flag.Bool("js", false, "Template javascript o padrão é Typescript")
+	template := flag.String("t", "ts", "Template (ts/js) typescript/javascript")
 	extension := "ts"
+	var classes []entities.ParsedClass
+	var err error
 
 	flag.Parse()
 
-	if *js {
-		extension = "js"
+	if *template != "ts" && *template != "js" {
+		extension = "ts"
+	} else {
+		extension = *template
 	}
 
 	if *jsonPath == "" {
@@ -34,15 +39,19 @@ func CliCreateMockBuilder() {
 		fmt.Println(mkdirErr)
 	}
 
-	tsClasses, err := usecases.ConvertJsonToTs(*jsonPath)
+	if extension == "js" {
+		classes, err = usecases.ConvertJsonToJs(*jsonPath)
+	} else {
+		classes, err = usecases.ConvertJsonToTs(*jsonPath)
+	}
 
 	if err != nil {
 		panic(err)
 	}
 
-	for _, tsClass := range tsClasses {
-		file := fmt.Sprintf("%v/%v.%v", *outputPath, tsClass.Name, extension)
-		err := ioutil.WriteFile(file, []byte(tsClass.BuilderClass), 0644)
+	for _, buildClass := range classes {
+		file := fmt.Sprintf("%v/%v.%v", *outputPath, buildClass.Name, extension)
+		err := ioutil.WriteFile(file, []byte(buildClass.BuilderClass), 0644)
 
 		if err != nil {
 			panic(err)
