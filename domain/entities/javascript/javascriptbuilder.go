@@ -1,31 +1,30 @@
-package entities
+package javascript
 
 import (
 	"fmt"
 	"reflect"
 	"strings"
 
+	"github.com/nelsonlpco/createmockbuilder/domain/entities"
 	"github.com/nelsonlpco/createmockbuilder/domain/utils"
 )
 
-const ClassTemplate = "class %v {\n%v\n%v\n%v\n%v\n%v\n}\n"
+const ClassTemplate = "class %v {\n%v\n%v\n%v\n%v\n}\n"
 const ConstructorTemplate = "\tconstructor() {\n%v\t}\n"
-const ParamsTemplate = "\t%v: %v;\n"
 const ParamsWithValueTemplate = "\t\tthis.%v = %v;\n"
-const WithMethodTemplate = "\twith%v(value: %v) {\n\t\tthis.%v = value;\n\t\treturn this;\n\t}\n"
+const WithMethodTemplate = "\twith%v(%v) {\n\t\tthis.%v = %v;\n\t\treturn this;\n\t}\n"
 const WithDefaultValuesTemplate = "\twithDefaultValues() {\n%v\n\t\treturn this;\n\t}\n"
 const BuildMethodTemplate = "\tbuild() {\n\t\treturn {\n%v\n\t\t}\n\t}\n"
 
-func NewTypescriptBuilder(classBuilder ClassBuilder) *ParsedClass {
-	params := makeParams(classBuilder, false)
-	constructor := fmt.Sprintf(ConstructorTemplate, makeParams(classBuilder, true))
+func NewJavascriptBuilder(classBuilder entities.ClassBuilder) *entities.ParsedClass {
+	constructor := fmt.Sprintf(ConstructorTemplate, makeParams(classBuilder))
 	withMethods := makeWithMethod(classBuilder)
 	withDefaultValues := makeWithDefaultMethod(classBuilder)
 	buildMethods := makeBuildMethod(classBuilder)
 
-	builder := ParsedClass{
+	builder := entities.ParsedClass{
 		Name:         classBuilder.Name(),
-		BuilderClass: fmt.Sprintf(ClassTemplate, classBuilder.Name(), params, constructor, withMethods, withDefaultValues, buildMethods),
+		BuilderClass: fmt.Sprintf(ClassTemplate, classBuilder.Name(), constructor, withMethods, withDefaultValues, buildMethods),
 	}
 
 	return &builder
@@ -49,7 +48,7 @@ func getDefaultValueByType(kind string) interface{} {
 func getValueType(kind reflect.Kind) string {
 	switch kind {
 	case reflect.Slice, reflect.Array:
-		return "any[]"
+		return "[]"
 	case reflect.Float32, reflect.Float64, reflect.Int:
 		return "number"
 	case reflect.Bool:
@@ -61,7 +60,7 @@ func getValueType(kind reflect.Kind) string {
 	}
 }
 
-func makeParams(model ClassBuilder, withValue bool) (result string) {
+func makeParams(model entities.ClassBuilder) (result string) {
 	result = ""
 
 	for _, param := range model.Params() {
@@ -69,28 +68,24 @@ func makeParams(model ClassBuilder, withValue bool) (result string) {
 		fieldType := getValueType(param.ValueType)
 		fieldValue := getDefaultValueByType(fieldType)
 
-		if withValue {
-			result += fmt.Sprintf(ParamsWithValueTemplate, fieldName, fieldValue)
-		} else {
-			result += fmt.Sprintf(ParamsTemplate, fieldName, fieldType)
-		}
+		result += fmt.Sprintf(ParamsWithValueTemplate, fieldName, fieldValue)
 	}
 
 	return
 }
 
-func makeWithMethod(model ClassBuilder) (result string) {
+func makeWithMethod(model entities.ClassBuilder) (result string) {
 	result = ""
 
 	for _, param := range model.Params() {
 		fieldName := utils.ToCamelCase(param.Name)
-		result += fmt.Sprintf(WithMethodTemplate, fieldName, getValueType(param.ValueType), fieldName)
+		result += fmt.Sprintf(WithMethodTemplate, fieldName, fieldName, fieldName, fieldName)
 	}
 
 	return
 }
 
-func makeWithDefaultMethod(model ClassBuilder) (result string) {
+func makeWithDefaultMethod(model entities.ClassBuilder) (result string) {
 	params := ""
 
 	for _, param := range model.Params() {
@@ -114,7 +109,7 @@ func makeWithDefaultMethod(model ClassBuilder) (result string) {
 	return
 }
 
-func makeBuildMethod(model ClassBuilder) (result string) {
+func makeBuildMethod(model entities.ClassBuilder) (result string) {
 	jsonParams := ""
 
 	for _, param := range model.Params() {
